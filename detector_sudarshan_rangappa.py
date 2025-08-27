@@ -71,6 +71,6 @@ def process_file(inp,out):
 
 def main():
     p=argparse.ArgumentParser(); p.add_argument("input_file"); a,_=p.parse_known_args()
-    process_file(a.input_file,"redacted_output_candidate_full_name.csv")
+    process_file(a.input_file,"redacted_output_sudarshan_rangappa.csv")
 
 if __name__=="__main__": main()
