@@ -1,0 +1,30 @@
+# Deployment Strategy for PII Detector
+
+The PII detector script is written in Python and packaged as a single file. It can be deployed in multiple ways depending on where data flows need to be inspected and cleaned. My aim is to balance accuracy with low latency and low overhead.
+
+## Option 1: API Gateway Plugin
+Most of the data in modern systems enters through API calls. One simple option is to wrap this script logic inside a lightweight Python-based service (like FastAPI or Flask) and deploy it as a plugin at the API Gateway layer.  
+- **Pros:** All incoming/outgoing requests can be sanitized before reaching the application.  
+- **Cons:** Adds a small latency overhead per request.
+
+## Option 2: Sidecar Container
+For microservice environments (Kubernetes), the detector can run as a sidecar container next to the application pod.  
+- **Pros:** Easy to scale horizontally, isolates PII handling logic from the main app code.  
+- **Cons:** Slightly more resource usage since each pod needs a copy.
+
+## Option 3: DaemonSet on Nodes
+In environments where data is streamed (e.g. logs or Kafka topics), running the detector as a DaemonSet across cluster nodes allows scanning local traffic or log files.  
+- **Pros:** Centralized control of deployment, covers all workloads on that node.  
+- **Cons:** Less granular, can be noisy if too much irrelevant data is processed.
+
+## Final Choice
+For this project, I would prefer **API Gateway plugin** deployment. It gives the best balance:  
+- Scales with traffic  
+- Integrates easily with existing API infra  
+- Keeps latency within acceptable range since regex+NER are relatively fast  
+- Central place to enforce redaction rules without modifying every service
+
+## Notes on Integration
+- The current Python script can be wrapped in a REST endpoint that accepts JSON and returns redacted JSON.  
+- For batch data (like CSVs), it can run as a cron job or ETL step before storage.  
+- In high-scale production, the regex rules can be ported to a faster language (like Go or Rust), while keeping ML/NLP parts as a service.
